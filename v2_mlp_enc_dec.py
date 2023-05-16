@@ -47,7 +47,7 @@ flags.DEFINE_string('gpu_id', '1', 'ID of GPU.')
 flags.DEFINE_integer('random_seed', 0, 'Random seed for both Numpy and Torch.')
 flags.DEFINE_integer('print_step', 1000, 'Interval to print metrics.')
 # Dataset parameters
-flags.DEFINE_integer('seq_len', 8, 'Maximum sequence length (L).')
+flags.DEFINE_integer('seq_len', 1, 'Maximum sequence length (L).')
 flags.DEFINE_integer('vocab_size', 256, 'Vocabulary size of data.')
 flags.DEFINE_string('input_dir', 'aaa', 'input data dir')
 flags.DEFINE_string('prefix', 'text8', 'output dir')
