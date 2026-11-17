@@ -1,0 +1,8 @@
+__pycache__/
+*.py[cod]
+.venv/
+
+# Written by v2_mlp_enc_dec.py into the directory it is started from
+*_temp/
+*.compressed.combined
+decompressed_out
