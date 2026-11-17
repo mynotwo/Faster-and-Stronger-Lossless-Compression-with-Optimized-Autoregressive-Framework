@@ -29,7 +29,7 @@ python v2_mlp_enc_dec.py --input_dir <input file> --prefix <name> --gpu_id <GPU 
 One run compresses the input file and then decompresses it again. It writes into the current directory:
 
 - `<prefix>_<vocab_dim>_<hidden_dim>_<ffn_dim>_bs<batch_size>_<n_layers>_seq<seq_len>.compressed.combined`: the compressed file.
-- `decompressed_out`: the decompressed data, written as text; bytes below 32 are written as spaces.
+- `decompressed_out`: the decompressed data.
 - `<prefix>_..._temp/`: the per-stream files. The run stops at start if this directory already exists, so remove it before running again with the same flags.
 
 Flags (defaults from `v2_mlp_enc_dec.py`):
@@ -56,4 +56,4 @@ Flags (defaults from `v2_mlp_enc_dec.py`):
 python -m unittest -v test_cpu_smoke
 ```
 
-Compresses and decompresses 2021 bytes of generated text with `--batch_size 8` and checks that `decompressed_out` equals the input. The test replaces `.cuda()` with a no-op in the process it starts, so it runs without a GPU.
+Compresses and decompresses two small inputs with `--batch_size 8` (2021 bytes of generated text, and 1029 bytes containing every byte value) and checks that `decompressed_out` equals the input. The test replaces `.cuda()` with a no-op in the process it starts, so it runs without a GPU.

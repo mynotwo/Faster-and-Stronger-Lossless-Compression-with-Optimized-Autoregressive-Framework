@@ -1,4 +1,4 @@
-"""CPU smoke test: compress and decompress a small text and compare with the input.
+"""CPU smoke test: compress and decompress small inputs and compare with the input.
 
 v2_mlp_enc_dec.py moves the model and every batch to the GPU with hard-coded
 .cuda() calls. The test runs the unmodified script in a subprocess where
@@ -24,10 +24,11 @@ runpy.run_path(sys.argv[0], run_name='__main__')
 """
 
 BATCH_SIZE = 8
-# seq_len is 16 with the default --hidden_dim/--vocab_dim. The length is chosen
-# so that (length - 16) is not a multiple of BATCH_SIZE: the script always
-# reads a trailing ".last" stream, which only exists in that case.
-INPUT_LENGTH = 2021
+# seq_len is 16 with the default --hidden_dim/--vocab_dim. Both input lengths
+# are chosen so that (length - 16) is not a multiple of BATCH_SIZE: the script
+# always reads a trailing ".last" stream, which only exists in that case.
+TEXT_LENGTH = 2021
+ALL_BYTE_VALUES = bytes(range(256)) * 4 + bytes(range(5))
 
 WORDS = (
     "the of and one in a to zero nine two is as eight for s five three was by "
@@ -38,11 +39,7 @@ WORDS = (
 
 
 def make_text(length):
-  """Deterministic lower-case text (a-z and space, like text8).
-
-  The script writes bytes below 32 as spaces, so only printable ASCII comes
-  back byte for byte.
-  """
+  """Deterministic lower-case text (a-z and space, like text8)."""
   state = 0
   words = []
   size = 0
@@ -56,10 +53,10 @@ def make_text(length):
 
 class CpuSmokeTest(unittest.TestCase):
 
-  def test_round_trip(self):
-    data = make_text(INPUT_LENGTH)
+  def round_trip(self, data):
+    """Runs the script on data and returns the content of decompressed_out."""
     with tempfile.TemporaryDirectory() as work_dir:
-      input_file = os.path.join(work_dir, "input.txt")
+      input_file = os.path.join(work_dir, "input.bin")
       with open(input_file, "wb") as f:
         f.write(data)
 
@@ -77,7 +74,15 @@ class CpuSmokeTest(unittest.TestCase):
       self.assertTrue(os.path.isfile(compressed))
 
       with open(os.path.join(work_dir, "decompressed_out"), "rb") as f:
-        self.assertEqual(f.read(), data)
+        return f.read()
+
+  def test_round_trip(self):
+    data = make_text(TEXT_LENGTH)
+    self.assertEqual(self.round_trip(data), data)
+
+  def test_round_trip_all_byte_values(self):
+    self.assertEqual(set(ALL_BYTE_VALUES), set(range(256)))
+    self.assertEqual(self.round_trip(ALL_BYTE_VALUES), ALL_BYTE_VALUES)
 
 
 if __name__ == "__main__":

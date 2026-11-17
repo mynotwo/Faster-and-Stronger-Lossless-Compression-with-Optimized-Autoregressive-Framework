@@ -107,9 +107,9 @@ def decode(temp_dir, compressed_file, FLAGS, len_series, last):
       print(train_index, ":", train_loss.item()/np.log(2))
   
     
-  out = open('decompressed_out', 'w')
+  out = open('decompressed_out', 'wb')
   for i in range(len(series_2d)):
-    out.write(utils.decode_tokens(series_2d[i]))
+    out.write(series_2d[i].astype(np.uint8).tobytes())
   
   
   for i in range(bs):
@@ -129,7 +129,7 @@ def decode(temp_dir, compressed_file, FLAGS, len_series, last):
       series[j] = dec.read(cumul, FLAGS.vocab_size)
   
     print("Last decode part don't need inference.")
-    out.write(utils.decode_tokens(series))
+    out.write(series.astype(np.uint8).tobytes())
     print(utils.decode_tokens(series))
     bitin.close()
     f.close()
