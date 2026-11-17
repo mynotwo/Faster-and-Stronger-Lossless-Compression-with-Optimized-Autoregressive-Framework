@@ -262,11 +262,10 @@ def main(_):
   
   total_length = len(train_data)
    
-  if total_length % FLAGS.batch_size == 0:
-    encode(temp_dir, compressed_file, FLAGS, series, train_data, None)
-  else:
-    l = total_length // FLAGS.batch_size * FLAGS.batch_size
-    encode(temp_dir, compressed_file, FLAGS, series[:l+FLAGS.seq_len], train_data[:l], series[l:])
+  # The symbols after the batched part (the final seq_len symbols plus the
+  # remainder that does not fill a batch) always go into a ".last" stream.
+  l = total_length // FLAGS.batch_size * FLAGS.batch_size
+  encode(temp_dir, compressed_file, FLAGS, series[:l+FLAGS.seq_len], train_data[:l], series[l:])
   
   #Combined compressed results
   f = open(compressed_file+'.combined','wb')
@@ -278,13 +277,12 @@ def main(_):
     f.write(byte_str)
     f_in.close()
   
-  if total_length % FLAGS.batch_size != 0:
-    f_in = open(temp_dir+'/'+compressed_file+'.last','rb')
-    byte_str = f_in.read()
-    byte_str_len = len(byte_str)
-    var_int_encode(byte_str_len, f)
-    f.write(byte_str)
-    f_in.close()
+  f_in = open(temp_dir+'/'+compressed_file+'.last','rb')
+  byte_str = f_in.read()
+  byte_str_len = len(byte_str)
+  var_int_encode(byte_str_len, f)
+  f.write(byte_str)
+  f_in.close()
   f.close()
   
   total = 0
@@ -317,11 +315,9 @@ def main(_):
   f.close()
   
   len_series = len(series)
-  if (len_series-FLAGS.seq_len) % FLAGS.batch_size == 0:
-    decode(temp_dir, compressed_file, FLAGS, len_series, 0)
-  else:
-    last_length = (len_series - FLAGS.seq_len) % FLAGS.batch_size + FLAGS.seq_len
-    decode(temp_dir, compressed_file, FLAGS, len_series, last_length)
+  # Same count as len(series[l:]) passed to encode() above.
+  last_length = (len_series - FLAGS.seq_len) % FLAGS.batch_size + FLAGS.seq_len
+  decode(temp_dir, compressed_file, FLAGS, len_series, last_length)
    
 
 if __name__ == '__main__':

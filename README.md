@@ -56,9 +56,10 @@ Flags (defaults from `v2_mlp_enc_dec.py`):
 python -m unittest -v test_cpu_smoke
 ```
 
-Compresses and decompresses two small inputs with `--batch_size 8` (2021 bytes of generated text, and 1029 bytes containing every byte value) and checks that `decompressed_out` equals the input. The test replaces `.cuda()` with a no-op in the process it starts, so it runs without a GPU.
+Compresses and decompresses three small inputs with `--batch_size 8` (2021 bytes of generated text, 2032 bytes of generated text as a batch-aligned length, and 1029 bytes containing every byte value) and checks that `decompressed_out` equals the input. The test replaces `.cuda()` with a no-op in the process it starts, so it runs without a GPU.
 
 ## Limitations
 
 - The compressed stream depends on the exact torch build and hardware: the decoder has to reproduce the encoder's model outputs bit for bit. A `.combined` file therefore decodes only in the environment that wrote it.
 - One run both compresses and decompresses. There is no separate decompression command: the decoder takes the input length from the input file read in the same run.
+- Files with a batch-aligned length (file size minus 16 is a multiple of `--batch_size`, with the default `--seq_len`, `--hidden_dim` and `--vocab_dim`) compressed by earlier versions of this code do not contain their final bytes and cannot be recovered from the `.combined` file.

@@ -24,10 +24,11 @@ runpy.run_path(sys.argv[0], run_name='__main__')
 """
 
 BATCH_SIZE = 8
-# seq_len is 16 with the default --hidden_dim/--vocab_dim. Both input lengths
-# are chosen so that (length - 16) is not a multiple of BATCH_SIZE: the script
-# always reads a trailing ".last" stream, which only exists in that case.
+# seq_len is 16 with the default --hidden_dim/--vocab_dim. An input is
+# batch-aligned when (length - 16) is a multiple of BATCH_SIZE: then the
+# batched streams cover everything except the final 16 bytes.
 TEXT_LENGTH = 2021
+ALIGNED_TEXT_LENGTH = 2032
 ALL_BYTE_VALUES = bytes(range(256)) * 4 + bytes(range(5))
 
 WORDS = (
@@ -78,6 +79,11 @@ class CpuSmokeTest(unittest.TestCase):
 
   def test_round_trip(self):
     data = make_text(TEXT_LENGTH)
+    self.assertEqual(self.round_trip(data), data)
+
+  def test_round_trip_batch_aligned_length(self):
+    self.assertEqual((ALIGNED_TEXT_LENGTH - 16) % BATCH_SIZE, 0)
+    data = make_text(ALIGNED_TEXT_LENGTH)
     self.assertEqual(self.round_trip(data), data)
 
   def test_round_trip_all_byte_values(self):
