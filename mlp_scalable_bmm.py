@@ -1,11 +1,6 @@
 # coding=utf-8
-import numpy as np
 import torch
 from torch import nn
-import torch.nn.functional as F
-import time
-import random
-import math
 
 class mlpCompressor(torch.nn.Module):
 
@@ -76,13 +71,6 @@ class mlpCompressor(torch.nn.Module):
     x = self.output_logit_map(x)
 
     return x, emb
-
-  def min_max(self, inp):
-    min_, e = torch.min(inp, 1)
-    max_, e = torch.max(inp, 1)
-    
-    out = (inp.squeeze(-1)-min_)/max_
-    return out.unsqueeze(2)
 
   def full_loss(self,
                 inputs,

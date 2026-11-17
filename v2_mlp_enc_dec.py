@@ -1,12 +1,7 @@
-import collections
-import gzip
 import os
-import time
-import utils
 import struct
 from absl import app
 from absl import flags
-from absl import logging
 import shutil
 
 import numpy as np
@@ -59,7 +54,6 @@ def decode(temp_dir, compressed_file, FLAGS, len_series, last):
 
   iter_num = (len_series - FLAGS.seq_len) // FLAGS.batch_size
   
-  ind = np.array(range(bs))*iter_num
   print(iter_num - FLAGS.seq_len)
   series_2d = np.zeros((bs,iter_num), dtype = np.uint8).astype('int')
 
@@ -90,7 +84,6 @@ def decode(temp_dir, compressed_file, FLAGS, len_series, last):
 
   #optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.learning_rate, weight_decay=FLAGS.weight_decay, betas=(.9, .999))
   optimizer = torch.optim.Adam(model.parameters(), lr=FLAGS.learning_rate, weight_decay=1e-7)
-  training_start = time.time()
   for train_index in range(iter_num-FLAGS.seq_len):
     model.train()
     train_batch = torch.LongTensor(series_2d[:, train_index:train_index + FLAGS.seq_len]).cuda()
@@ -242,16 +235,6 @@ def var_int_decode(f):
         byte_str_len += shift
     return byte_str_len
 
-def load_file_be16(filename):
-    print("loading " + filename);
-    f = open(filename, "rb")
-    byte_buffer = f.read();
-    f.close();
-    data = []
-    for i in range(0, len(byte_buffer), 2):
-      data.append(byte_buffer[i] * 256 + byte_buffer[i + 1])
-    return data
-
 def main(_):
 
   os.environ['CUDA_VISIBLE_DEVICES'] = FLAGS.gpu_id
@@ -273,7 +256,6 @@ def main(_):
   FLAGS.seq_len = FLAGS.seq_len*(FLAGS.hidden_dim // FLAGS.vocab_dim)
   print("FLAGS.seq_len change from {} to {} due to FLAGS.vocab_dim = {} and FLAGS.hidden_dim = {}.".format(old_seq_len, FLAGS.seq_len, FLAGS.vocab_dim, FLAGS.hidden_dim))
   
-  #series = np.array(load_file_be16(FLAGS.input_dir))
   with open(FLAGS.input_dir, 'rb') as fp:#, encoding='latin-1') as fp:
     series = np.fromstring(fp.read(), dtype=np.uint8)
   train_data = strided_app(series, FLAGS.seq_len+1, 1)
@@ -320,7 +302,6 @@ def main(_):
   #Split compressed file
   
   f = open(compressed_file+'.combined','rb')
-  len_series = len(series) 
   for i in range(FLAGS.batch_size):
     f_out = open(temp_dir+'/'+compressed_file+'.'+str(i),'wb')
     byte_str_len = var_int_decode(f)
