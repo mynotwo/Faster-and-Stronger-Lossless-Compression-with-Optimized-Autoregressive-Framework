@@ -1,0 +1,9 @@
+# Packages imported by v2_mlp_enc_dec.py, mlp_scalable_bmm.py and
+# arithmeticcoding_fast.py.
+# numpy must stay below 1.23: arithmeticcoding_fast.py calls np.asscalar, which
+# NumPy 1.23 removed. NumPy 1.22 supports Python 3.8 to 3.10.
+# test_cpu_smoke.py was last run with Python 3.9.6, absl-py 2.3.1,
+# numpy 1.22.4 and torch 2.8.0.
+absl-py
+numpy<1.23
+torch
